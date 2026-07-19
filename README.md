@@ -3,7 +3,7 @@
 **Stop malicious MCP servers and poisoned skills before they reach your model.**
 
 <!-- badges -->
-[![PyPI](https://img.shields.io/pypi/v/mcpscan)](https://pypi.org/project/mcpscan/)
+[![Release](https://img.shields.io/github/v/release/yyyutakaaa/mcpscan?display_name=tag)](https://github.com/yyyutakaaa/mcpscan/releases)
 [![CI](https://github.com/yyyutakaaa/mcpscan/actions/workflows/ci.yml/badge.svg)](https://github.com/yyyutakaaa/mcpscan/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-lightgrey)](LICENSE)
 
@@ -14,13 +14,13 @@ exfiltration endpoints.
 ## 30 seconds to your first scan
 
 ```bash
-pip install mcpscan
+pip install git+https://github.com/yyyutakaaa/mcpscan.git@v0.1.0
 mcpscan .
 ```
 
 It finds MCP configs, Python servers, and skill folders, then prints a report. Exits 1
 if it finds anything at or above the threshold (default: `high`). Works straight in
-CI — no glue needed.
+CI — no glue needed. The package is installed directly from the tagged GitHub release.
 
 ## The rules
 
@@ -112,7 +112,7 @@ jobs:
       security-events: write
     steps:
       - uses: actions/checkout@v4
-      - uses: yyyutakaaa/mcpscan@main
+      - uses: yyyutakaaa/mcpscan@v0.1.0
         with:
           path: .
           fail-on: high
@@ -158,7 +158,7 @@ assertion that it fires — we'll take a look.
 To hack on it locally:
 
 ```bash
-git clone https://github.com/mcpscan/mcpscan && cd mcpscan
+git clone https://github.com/yyyutakaaa/mcpscan && cd mcpscan
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 pytest
