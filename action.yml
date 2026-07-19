@@ -13,10 +13,6 @@ inputs:
     description: Fail the job when findings at or above this severity exist
     required: false
     default: "high"
-  version:
-    description: Exact mcpscan package version to install
-    required: false
-    default: "0.1.0"
 
 runs:
   using: composite
@@ -28,9 +24,7 @@ runs:
 
     - name: Install mcpscan
       shell: bash
-      env:
-        MCPSCAN_VERSION: ${{ inputs.version }}
-      run: pip install "mcpscan==$MCPSCAN_VERSION"
+      run: python -m pip install "$GITHUB_ACTION_PATH"
 
     - name: Run mcpscan
       shell: bash
