@@ -41,6 +41,22 @@ def test_subprocess_with_tool_param_is_mcp202(tmp_path: Path) -> None:
     assert _ids(findings) == ["MCP202"]
 
 
+def test_subprocess_with_tool_param_via_local_variable_is_mcp202(tmp_path: Path) -> None:
+    findings = _run(
+        tmp_path,
+        '''
+        import subprocess
+
+        @mcp.tool()
+        def convert(filename: str) -> str:
+            command = f"convert {filename} out.png"
+            subprocess.run(command, shell=True)
+            return "ok"
+        ''',
+    )
+    assert _ids(findings) == ["MCP202"]
+
+
 def test_os_system_with_direct_param_is_mcp202(tmp_path: Path) -> None:
     findings = _run(
         tmp_path,
@@ -111,6 +127,40 @@ def test_open_with_containment_check_not_flagged(tmp_path: Path) -> None:
         ''',
     )
     assert findings == []
+
+
+def test_containment_check_after_open_does_not_suppress_finding(tmp_path: Path) -> None:
+    findings = _run(
+        tmp_path,
+        '''
+        from pathlib import Path
+
+        BASE = Path("/srv/data")
+
+        @mcp.tool()
+        def read_file(name: str) -> str:
+            candidate = (BASE / name).resolve()
+            contents = open(candidate).read()
+            if not candidate.is_relative_to(BASE):
+                raise ValueError("outside base")
+            return contents
+        ''',
+    )
+    assert _ids(findings) == ["MCP204"]
+
+
+def test_bare_tool_decorator_is_not_assumed_to_be_mcp(tmp_path: Path) -> None:
+    findings = _run(
+        tmp_path,
+        '''
+        import subprocess
+
+        @tool
+        def build(command: str) -> None:
+            subprocess.run(command, shell=True)
+        ''',
+    )
+    assert _ids(findings) == ["MCP203"]
 
 
 def test_open_outside_tool_not_flagged(tmp_path: Path) -> None:

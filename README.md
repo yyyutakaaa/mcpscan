@@ -3,15 +3,13 @@
 **Stop malicious MCP servers and poisoned skills before they reach your model.**
 
 <!-- badges -->
-[![PyPI](https://img.shields.io/badge/pypi-mcpscan-blue)](#) [![CI](https://img.shields.io/badge/ci-passing-brightgreen)](#) [![License](https://img.shields.io/badge/license-Apache--2.0-lightgrey)](#)
+[![PyPI](https://img.shields.io/pypi/v/mcpscan)](https://pypi.org/project/mcpscan/)
+[![CI](https://github.com/yyyutakaaa/mcpscan/actions/workflows/ci.yml/badge.svg)](https://github.com/yyyutakaaa/mcpscan/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-Apache--2.0-lightgrey)](LICENSE)
 
 mcpscan scans your configs, Python code, and skills for the security problems that
 actually matter: injection attacks, over-permissive tools, leaked secrets, and
 exfiltration endpoints.
-
-<!-- Maintainer: record a demo GIF with `vhs` (https://github.com/charmbracelet/vhs)
-     showing `mcpscan tests/fixtures/vulnerable_server` and place it here. -->
-![demo](docs/demo.gif)
 
 ## 30 seconds to your first scan
 
@@ -88,6 +86,18 @@ Commands:
 ```
 
 Exit codes: `0` = no findings, `1` = findings at/above threshold, `2` = error.
+
+## Detection model and limitations
+
+mcpscan is a static, heuristic scanner. A finding identifies risky code or text that
+deserves review; it does not prove that a server is malicious. Conversely, a clean
+scan does not prove that a server is safe.
+
+The Python checks perform local analysis inside MCP tool functions, including direct
+parameter use and propagation through local assignments. They do not currently follow
+data through helper functions, imports, containers, or runtime-generated code. Path
+containment checks are recognized syntactically, so reviewers should still verify that
+the check protects the same path and base directory used by the file operation.
 
 ## GitHub integration
 

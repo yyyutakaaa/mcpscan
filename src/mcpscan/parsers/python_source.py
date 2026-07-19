@@ -7,9 +7,6 @@ import ast
 from mcpscan.models import Category, Finding, Location, ScanTarget, Severity
 from mcpscan.parsers import ParsedTarget, PythonModule, StringConst, TextUnit, ToolDef
 
-TOOL_DECORATOR_SUFFIXES = ("tool",)
-
-
 def dotted_name(node: ast.expr, aliases: dict[str, str] | None = None) -> str | None:
     """Resolve an expression like ``subprocess.run`` to its dotted name, if possible."""
     parts: list[str] = []
@@ -34,8 +31,11 @@ def _decorator_name(dec: ast.expr) -> str | None:
 
 def is_tool_decorated(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
     for dec in node.decorator_list:
+        # FastMCP-style tools use a qualified decorator such as @mcp.tool() or
+        # @server.tool(). A bare @tool decorator is too generic to identify as MCP.
+        target = dec.func if isinstance(dec, ast.Call) else dec
         name = _decorator_name(dec)
-        if name and name.split(".")[-1] in TOOL_DECORATOR_SUFFIXES:
+        if isinstance(target, ast.Attribute) and name and name.endswith(".tool"):
             return True
     return False
 

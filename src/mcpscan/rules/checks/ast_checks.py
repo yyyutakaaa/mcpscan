@@ -67,11 +67,32 @@ def _all_constant(call: ast.Call) -> bool:
     )
 
 
-def _has_containment_check(func: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+def _has_prior_containment_check(
+    func: ast.FunctionDef | ast.AsyncFunctionDef, before: ast.AST
+) -> bool:
+    """Return whether a containment operation appears before the file access.
+
+    This remains deliberately conservative static analysis, but avoids treating a
+    check performed after a dangerous access as protection for that access.
+    """
+    before_line = getattr(before, "lineno", 0)
     return any(
-        isinstance(sub, ast.Attribute) and sub.attr in CONTAINMENT_ATTRS
+        isinstance(sub, ast.Attribute)
+        and sub.attr in CONTAINMENT_ATTRS
+        and getattr(sub, "lineno", before_line) < before_line
         for sub in ast.walk(func)
     )
+
+
+def _assigned_names(target: ast.expr) -> set[str]:
+    """Collect simple names written by an assignment target."""
+    if isinstance(target, ast.Name):
+        return {target.id}
+    if isinstance(target, (ast.Tuple, ast.List)):
+        return set().union(*(_assigned_names(item) for item in target.elts))
+    if isinstance(target, ast.Starred):
+        return _assigned_names(target.value)
+    return set()
 
 
 def _snippet(py: PythonModule, node: ast.AST) -> str:
@@ -123,6 +144,7 @@ class _Visitor(ast.NodeVisitor):
         self.tools = tools
         self.aliases = aliases
         self.func_stack: list[ast.FunctionDef | ast.AsyncFunctionDef] = []
+        self.tainted_stack: list[set[str]] = []
         self.findings: list[Finding] = []
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
@@ -133,8 +155,36 @@ class _Visitor(ast.NodeVisitor):
 
     def _visit_func(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> None:
         self.func_stack.append(node)
+        tool = self.tools.get(id(node))
+        self.tainted_stack.append(set(tool.params) if tool else set())
         self.generic_visit(node)
+        self.tainted_stack.pop()
         self.func_stack.pop()
+
+    def _update_assignment(self, targets: list[ast.expr], value: ast.expr) -> None:
+        if not self.tainted_stack:
+            return
+        tainted = self.tainted_stack[-1]
+        value_is_tainted = _uses_param(value, tainted)
+        for target in targets:
+            for name in _assigned_names(target):
+                if value_is_tainted:
+                    tainted.add(name)
+                else:
+                    tainted.discard(name)
+
+    def visit_Assign(self, node: ast.Assign) -> None:
+        self.visit(node.value)
+        self._update_assignment(list(node.targets), node.value)
+
+    def visit_AnnAssign(self, node: ast.AnnAssign) -> None:
+        if node.value is not None:
+            self.visit(node.value)
+            self._update_assignment([node.target], node.value)
+
+    def visit_NamedExpr(self, node: ast.NamedExpr) -> None:
+        self.visit(node.value)
+        self._update_assignment([node.target], node.value)
 
     def _enclosing_tool(self) -> ToolDef | None:
         for func in reversed(self.func_stack):
@@ -176,8 +226,8 @@ class _Visitor(ast.NodeVisitor):
 
     def _check_command(self, node: ast.Call, name: str) -> None:
         tool = self._enclosing_tool()
-        params = set(tool.params) if tool else set()
-        if tool and any(_uses_param(arg, params) for arg in _call_args(node)):
+        tainted = self.tainted_stack[-1] if self.tainted_stack else set()
+        if tool and any(_uses_param(arg, tainted) for arg in _call_args(node)):
             self.findings.append(
                 _finding(
                     self.py,
@@ -215,10 +265,10 @@ class _Visitor(ast.NodeVisitor):
         tool = self._enclosing_tool()
         if tool is None:
             return
-        params = set(tool.params)
-        if not any(_uses_param(arg, params) for arg in _call_args(node)):
+        tainted = self.tainted_stack[-1] if self.tainted_stack else set()
+        if not any(_uses_param(arg, tainted) for arg in _call_args(node)):
             return
-        if _has_containment_check(tool.node):
+        if _has_prior_containment_check(tool.node, node):
             return
         self.findings.append(
             _finding(
