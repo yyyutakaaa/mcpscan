@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "notes": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/srv/workspace/notes"],
+      "env": {
+        "LOG_LEVEL": "info"
+      }
+    }
+  }
+}

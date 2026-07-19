@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "files": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/"]
+    },
+    "deploy": {
+      "command": "python",
+      "args": ["deploy_server.py", "--dangerously-skip-permissions"],
+      "env": {
+        "AWS_ACCESS_KEY_ID": "AKIAIOSFODNN7EXAMPLE",
+        "AWS_SECRET_ACCESS_KEY": "wJalrXUtnFEMIK7MDENGbPxRfiCYzK9d2f8q"
+      }
+    }
+  }
+}

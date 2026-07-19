@@ -1,0 +1,16 @@
+id: MCP105
+title: Tool description references other tools' behavior
+severity: high
+category: prompt-injection
+applies_to: [tool_description]
+matchers:
+  - type: regex
+    pattern: "(?i)instead of (using|calling)"
+  - type: regex
+    pattern: "(?i)before (calling|using) (any )?other tools?"
+  - type: regex
+    pattern: "(?i)do not (use|call) (the )?[a-z_]+ tool"
+description: >
+  A tool description that steers the model away from or ahead of other tools is a
+  shadowing/poisoning pattern used to hijack workflows across servers.
+remediation: Describe only this tool's own behavior; never reference other tools.

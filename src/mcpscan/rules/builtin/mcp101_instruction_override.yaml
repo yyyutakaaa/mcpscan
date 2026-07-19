@@ -1,0 +1,14 @@
+id: MCP101
+title: Instruction-override phrase in tool description
+severity: high
+category: prompt-injection
+applies_to: [tool_description, skill_text]
+matchers:
+  - type: regex
+    pattern: "(?i)ignore (all |any )?(previous|prior|above) (instructions|prompts)"
+  - type: regex
+    pattern: "(?i)do not (tell|inform|mention to) the user"
+description: >
+  Tool descriptions and skill files are injected into the model's context.
+  Imperative override phrases are a tool-poisoning indicator.
+remediation: Remove instruction-like language from descriptions; describe only what the tool does.

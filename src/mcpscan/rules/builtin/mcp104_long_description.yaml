@@ -1,0 +1,12 @@
+id: MCP104
+title: Suspiciously long tool description
+severity: medium
+category: prompt-injection
+applies_to: [tool_description]
+matchers:
+  - type: regex
+    pattern: "(?s)\\A[\\s\\S]{1501,}"
+description: >
+  Tool descriptions longer than 1500 characters are unusual and often hide
+  injected instructions deep in text no human reviews.
+remediation: Keep tool descriptions short and factual; move documentation elsewhere.

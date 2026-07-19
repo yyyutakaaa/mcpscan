@@ -1,0 +1,41 @@
+name: mcpscan
+description: Static security scanner for MCP servers and AI agent skills
+branding:
+  icon: shield
+  color: purple
+
+inputs:
+  path:
+    description: Path to scan
+    required: false
+    default: "."
+  fail-on:
+    description: Fail the job when findings at or above this severity exist
+    required: false
+    default: "high"
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Install mcpscan
+      shell: bash
+      run: pip install mcpscan
+
+    - name: Run mcpscan
+      shell: bash
+      run: >
+        mcpscan "${{ inputs.path }}"
+        --format sarif
+        --output results.sarif
+        --fail-on "${{ inputs.fail-on }}"
+
+    - name: Upload SARIF
+      if: always()
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: results.sarif

@@ -1,0 +1,12 @@
+id: MCP211
+title: Filesystem server rooted at an overly broad path
+severity: medium
+category: permissions
+applies_to: [server_args]
+matchers:
+  - type: regex
+    pattern: "(?i)filesystem\\S*.*(\\s|=)(/|~/?|[A-Za-z]:\\\\?)(\\s|$)"
+description: >
+  A filesystem MCP server whose root is /, the home directory, or an entire drive
+  exposes far more files than any single agent task needs.
+remediation: Scope the filesystem server to the narrowest project directory that works.

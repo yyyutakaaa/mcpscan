@@ -1,0 +1,12 @@
+id: MCP210
+title: Server launched with permission-bypassing flags
+severity: medium
+category: permissions
+applies_to: [server_args]
+matchers:
+  - type: regex
+    pattern: "--(allow-all|dangerously-skip-permissions|no-sandbox|allow-everything|skip-permissions|disable-security|unsafe(ly)?-[a-z-]+)"
+description: >
+  The server is configured with flags that disable sandboxing or permission
+  checks, giving its tools unrestricted access to the host.
+remediation: Remove the flag and grant the server only the permissions it needs.

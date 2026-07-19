@@ -1,0 +1,12 @@
+id: MCP402
+title: Unpinned pip install in skill text
+severity: low
+category: supply-chain
+applies_to: [skill_text]
+matchers:
+  - type: regex
+    pattern: "(?im)\\bpip3?\\s+install\\s+(?!-)(?!https?://)(?![^\\n]*==)[A-Za-z0-9][^\\n]*"
+description: >
+  Installing packages without pinning versions (==) lets a future release change
+  what the skill executes, silently altering agent behavior.
+remediation: "Pin every dependency: pip install package==1.2.3."

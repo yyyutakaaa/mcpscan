@@ -1,0 +1,14 @@
+id: MCP401
+title: Remote script piped straight into a shell
+severity: low
+category: supply-chain
+applies_to: [skill_text]
+matchers:
+  - type: regex
+    pattern: "(curl|wget)[^\\n|]*\\|\\s*(sudo\\s+)?(sh|bash|zsh)\\b"
+  - type: regex
+    pattern: "pip3?\\s+install\\s+https?://"
+description: >
+  Piping a downloaded script into a shell (or pip-installing from a raw URL)
+  executes unreviewed remote code and is a classic supply-chain foothold.
+remediation: Download, review, and pin artifacts before executing or installing them.

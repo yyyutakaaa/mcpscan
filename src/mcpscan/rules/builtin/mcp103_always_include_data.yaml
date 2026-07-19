@@ -1,0 +1,12 @@
+id: MCP103
+title: Description instructs the model to always attach data
+severity: high
+category: prompt-injection
+applies_to: [tool_description, skill_text]
+matchers:
+  - type: regex
+    pattern: "(?i)always (include|append|attach|send)[^\\n]{0,80}?(files?|contents?|keys?|tokens?|conversation|secrets?|passwords?|credentials?)"
+description: >
+  Instructions to always include files, keys, tokens, or the conversation in tool
+  calls or replies are a data-harvesting pattern frequently used in tool poisoning.
+remediation: Tools should request only the data they need; remove blanket attach/include instructions.
