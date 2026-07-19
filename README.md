@@ -112,7 +112,7 @@ jobs:
       security-events: write
     steps:
       - uses: actions/checkout@v4
-      - uses: mcpscan/mcpscan@v1
+      - uses: yyyutakaaa/mcpscan@main
         with:
           path: .
           fail-on: high
